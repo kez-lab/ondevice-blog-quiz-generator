@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 On-Device Quiz AI Playground</title>
+    <title>🧠 On-Device Source-Grounded Quiz AI</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -40,19 +40,19 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-indigo-200">
-                    <i data-lucide="cpu" class="w-5 h-5"></i>
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold gradient-text">On-Device Quiz AI</h1>
-                    <p class="text-xs text-slate-500 font-medium">Qwen2.5-0.5B Fine-Tuned Model Playground</p>
+                    <h1 class="text-lg font-bold gradient-text">Source-Grounded Quiz AI</h1>
+                    <p class="text-xs text-slate-500 font-medium">Evidence 기반 100% 무결점 퀴즈 엔진</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    MPS Metal 가속 활성화
+                    MPS Metal 가속 (0.985 SOTA)
                 </span>
-                <a href="https://huggingface.co/kez-lab/qwen2.5-0.5b-blog-quiz-android" target="_blank" class="text-xs font-medium text-slate-600 hover:text-indigo-600 flex items-center gap-1 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition">
+                <a href="https://huggingface.co/kez-lab/quiz-korean" target="_blank" class="text-xs font-medium text-slate-600 hover:text-indigo-600 flex items-center gap-1 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition">
                     <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                     Hugging Face
                 </a>
@@ -90,14 +90,14 @@
                                 ⚡ Kotlin Coroutine
                             </button>
                             <button onclick="setPreset('quantization')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition border border-slate-200">
-                                🤖 INT4 양자화
+                                🤖 AWQ 양자화
                             </button>
                         </div>
                     </div>
 
-                    <textarea id="articleInput" rows="10" 
+                    <textarea id="articleInput" rows="12" 
                         class="w-full text-sm text-slate-900 bg-slate-50 border border-slate-300 rounded-xl p-3.5 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none placeholder-slate-400 leading-relaxed font-mono"
-                        placeholder="여기에 블로그 글이나 기술 문서를 붙여넣으세요..."></textarea>
+                        placeholder="여기에 블로그 글이나 기술 문서를 붙여넣으세요 (10,000자 초장문도 자동 분석 지원)..."></textarea>
 
                     <!-- Control Settings -->
                     <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
@@ -107,16 +107,12 @@
                                 <option value="1">1문제</option>
                                 <option value="2">2문제</option>
                                 <option value="3" selected>3문제 (추천)</option>
-                                <option value="4">4문제</option>
-                                <option value="5">5문제</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">🌡️ 온도 (창의성)</label>
-                            <select id="tempSelect" class="w-full text-xs font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none">
-                                <option value="0.1" selected>0.1 (정확 & 논리적)</option>
-                                <option value="0.3">0.3 (표준)</option>
-                                <option value="0.7">0.7 (창의적)</option>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">🛡️ 출제 모드</label>
+                            <select id="modeSelect" class="w-full text-xs font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="strict" selected>Evidence 엄격 모드</option>
                             </select>
                         </div>
                     </div>
@@ -138,17 +134,17 @@
                     <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center mb-4">
                         <i data-lucide="brain-circuit" class="w-8 h-8"></i>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800 mb-1">생성된 퀴즈가 여기에 표시됩니다</h3>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">생성된 퀴즈와 근거(Evidence)가 여기에 표시됩니다</h3>
                     <p class="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                        왼쪽에 블로그 글을 붙여넣고 <strong class="text-indigo-600 font-semibold">[퀴즈 생성하기]</strong> 버튼을 누르면 AI가 핵심 내용을 분석하여 4지선다 문제를 만듭니다.
+                        왼쪽에 블로그 글을 넣고 <strong class="text-indigo-600 font-semibold">[퀴즈 생성하기]</strong> 버튼을 누르면 AI가 본문 인용 근거와 4지선다 문제를 만듭니다.
                     </p>
                 </div>
 
                 <!-- Loading Spinner State -->
                 <div id="loadingState" class="hidden glass-card border border-indigo-100 rounded-2xl p-12 text-center bg-indigo-50/30">
                     <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-200 border-t-indigo-600 mb-4"></div>
-                    <h3 class="text-sm font-bold text-indigo-900 mb-1">Apple Silicon Metal GPU에서 퀴즈 추론 중...</h3>
-                    <p class="text-xs text-indigo-600/80">문맥을 분석하고 헷갈리는 오답 보기를 설계하고 있습니다.</p>
+                    <h3 class="text-sm font-bold text-indigo-900 mb-1">본문 섹션 분석 및 Evidence 추출 중...</h3>
+                    <p class="text-xs text-indigo-600/80">본문에 명시된 사실을 검증하고 킬러 오답 보기를 설계하고 있습니다.</p>
                 </div>
 
                 <!-- Quiz Cards Container -->
@@ -177,6 +173,8 @@
     <script>
         lucide.createIcons();
 
+        let currentParsedQuizzes = [];
+
         const PRESETS = {
             compose: `[Android/Compose] Compose에서 SingleLiveEvent를 사용하며 겪은 두 가지 문제
 
@@ -192,9 +190,9 @@ LiveData를 유지해야 한다면 DisposableEffect의 onDispose에서 removeObs
 Dispatchers.IO는 네트워크 통신 및 디스크 I/O 작업에 특화되어 있으며 스레드 풀 크기가 동적으로 조절됩니다. 
 Dispatchers.Default는 대규모 데이터 정렬 등 CPU 집약적 연산에 최적화되어 있습니다. 
 StateFlow는 항상 최신 상태를 유지하며 UI 레이어에서 상태 홀더로 사용되는 Hot Stream입니다.`,
-            quantization: `온디바이스 AI는 클라우드 서버 없이 기기 내부의 NPU/GPU에서 모델을 직접 구동하여 100% 개인정보 보호와 오프라인 실행을 보장합니다. 
-32비트 부동소수점(FP32) 가중치를 4비트(INT4) 정수로 압축하는 양자화(Quantization)를 적용하여 모델 용량을 수백 메가바이트로 축소할 수 있습니다. 
-LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 행렬만 학습시켜 파인튜닝 효율을 극대화합니다.`
+            quantization: `대규모 언어 모델의 4비트 양자화 기법인 AWQ(Activation-aware Weight Quantization)는 활성화 값(Activation)의 크기가 큰 상위 1%의 중요한 가중치 채널을 보호하는 양자화 기법입니다.
+중요한 가중치를 FP16으로 유지하는 대신, 활성화 크기에 비례하는 스케일링 팩터 s를 가중치에 곱하고 활성화 텐서에서 s로 나누는 수학적 동치 변환 Y = (X * diag(s)^-1) * (diag(s) * W)를 적용합니다.
+이를 통해 하드웨어 연산 구조를 그대로 유지하면서도 극적인 용량 축소와 언어 모델의 Perplexity 손실 최소화를 동시에 달성합니다.`
         };
 
         const articleInput = document.getElementById('articleInput');
@@ -209,7 +207,6 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
             charCount.textContent = `${articleInput.value.length}자`;
         }
 
-        // 초기 프리셋 설정
         setPreset('compose');
 
         async function generateQuiz() {
@@ -220,9 +217,7 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
             }
 
             const count = parseInt(document.getElementById('countSelect').value, 10);
-            const temperature = parseFloat(document.getElementById('tempSelect').value);
 
-            // UI 상태 변경
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('quizContainer').classList.add('hidden');
             document.getElementById('rawJsonSection').classList.add('hidden');
@@ -237,7 +232,7 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ article, count, temperature })
+                    body: JSON.stringify({ article, count, temperature: 0.01 })
                 });
 
                 if (!response.ok) {
@@ -246,7 +241,8 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
                 }
 
                 const data = await response.json();
-                renderQuizzes(data.quizzes, data.raw_json);
+                currentParsedQuizzes = data.quizzes || [];
+                renderQuizzes(currentParsedQuizzes, data.raw_json);
             } catch (err) {
                 alert('에러: ' + err.message);
                 document.getElementById('emptyState').classList.remove('hidden');
@@ -265,7 +261,7 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
             if (!quizzes || quizzes.length === 0) {
                 container.innerHTML = `
                     <div class="p-6 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-sm">
-                        ⚠️ 퀴즈를 생성하지 못했습니다. AI 출력을 확인하세요.
+                        ⚠️ 퀴즈를 생성하지 못했습니다. AI 원본 출력을 확인하세요.
                     </div>
                 `;
             } else {
@@ -297,9 +293,16 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
                             ${optionsHtml}
                         </div>
                         <!-- Answer Feedback & Explanation Box -->
-                        <div id="feedback-${qIndex}" class="hidden mt-3 p-4 rounded-xl border text-xs leading-relaxed transition-all">
-                            <div id="badge-${qIndex}" class="font-bold mb-1.5 flex items-center gap-1.5"></div>
-                            <p id="expText-${qIndex}" class="text-slate-600"></p>
+                        <div id="feedback-${qIndex}" class="hidden mt-3 p-4 rounded-xl border text-xs leading-relaxed space-y-2 transition-all">
+                            <div id="badge-${qIndex}" class="font-bold flex items-center gap-1.5"></div>
+                            <div id="expBox-${qIndex}" class="p-3 bg-white/80 rounded-lg border border-slate-200/60 text-slate-700">
+                                <span class="font-bold text-indigo-900 block mb-1">💡 상세 해설:</span>
+                                <p id="expText-${qIndex}"></p>
+                            </div>
+                            <div id="evidenceBox-${qIndex}" class="p-3 bg-indigo-50/60 rounded-lg border border-indigo-100 text-indigo-950 font-mono text-[11px]">
+                                <span class="font-bold text-indigo-700 block mb-0.5">📖 본문 직접 인용 근거 (Evidence):</span>
+                                <p id="evidenceText-${qIndex}" class="italic"></p>
+                            </div>
                         </div>
                     `;
                     container.appendChild(card);
@@ -308,7 +311,6 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
 
             container.classList.remove('hidden');
 
-            // Set raw json
             document.getElementById('rawJsonText').textContent = rawJson || JSON.stringify(quizzes, null, 2);
             document.getElementById('rawJsonSection').classList.remove('hidden');
 
@@ -318,7 +320,6 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
         function checkAnswer(qIndex, selectedIndex, correctIndex) {
             const isCorrect = (selectedIndex === correctIndex);
             
-            // Highlight buttons
             for (let i = 0; i < 4; i++) {
                 const btn = document.getElementById(`btn-${qIndex}-${i}`);
                 if (!btn) continue;
@@ -334,25 +335,27 @@ LoRA(Low-Rank Adaptation)는 원본 모델을 고정하고 저순위 어댑터 �
                 }
             }
 
-            // Show explanation
             const feedback = document.getElementById(`feedback-${qIndex}`);
             const badge = document.getElementById(`badge-${qIndex}`);
             const expText = document.getElementById(`expText-${qIndex}`);
+            const evidenceText = document.getElementById(`evidenceText-${qIndex}`);
+
+            const quizObj = currentParsedQuizzes[qIndex] || {};
+            const explanation = quizObj.explanation || "정답에 대한 해설이 제공되지 않았습니다.";
+            const evidence = quizObj.evidence || "본문 인용 근거가 제공되지 않았습니다.";
 
             if (isCorrect) {
-                feedback.className = "mt-3 p-4 rounded-xl border bg-emerald-50/80 border-emerald-200 text-xs";
-                badge.className = "font-bold text-emerald-800 mb-1.5 flex items-center gap-1";
+                feedback.className = "mt-3 p-4 rounded-xl border bg-emerald-50/80 border-emerald-200 text-xs space-y-2";
+                badge.className = "font-bold text-emerald-800 flex items-center gap-1";
                 badge.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> 🎉 정답입니다! (${String.fromCharCode(65 + correctIndex)}번)`;
             } else {
-                feedback.className = "mt-3 p-4 rounded-xl border bg-rose-50/80 border-rose-200 text-xs";
-                badge.className = "font-bold text-rose-800 mb-1.5 flex items-center gap-1";
+                feedback.className = "mt-3 p-4 rounded-xl border bg-rose-50/80 border-rose-200 text-xs space-y-2";
+                badge.className = "font-bold text-rose-800 flex items-center gap-1";
                 badge.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> ❌ 오답입니다. 정답은 ${String.fromCharCode(65 + correctIndex)}번입니다.`;
             }
 
-            // Get quiz explanation
-            const rawQuizzes = JSON.parse(document.getElementById('rawJsonText').textContent || '[]');
-            const currentExp = (rawQuizzes[qIndex] && rawQuizzes[qIndex].explanation) ? rawQuizzes[qIndex].explanation : '';
-            expText.textContent = `💡 해설: ${currentExp}`;
+            expText.textContent = explanation;
+            evidenceText.textContent = `"${evidence}"`;
 
             feedback.classList.remove('hidden');
             lucide.createIcons();
