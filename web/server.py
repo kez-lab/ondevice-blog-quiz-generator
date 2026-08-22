@@ -309,9 +309,18 @@ async def generate_quiz_stream(req: GenerateRequest, request: Request):
         raw_outputs = []
 
         async with inference_lock:
+            if await request.is_disconnected():
+                logger.info(f"🛑 [{client_ip}] 락 획득 전 브라우저 연결 종료 감지 ➡️ 요청 취소")
+                return
+
+            logger.info(f"📥 [{client_ip}] SSE 추론 시작: 본문 {article_len}자 ➡️ {len(sections)}개 섹션으로 {target_count}문제 생성")
             yield f"data: {json.dumps({'type': 'init', 'total': len(sections)})}\n\n"
             
             for s_idx, sec in enumerate(sections, 1):
+                if await request.is_disconnected():
+                    logger.info(f"🛑 [{client_ip}] [Q{s_idx}/{len(sections)}] 도중 브라우저 연결 종료 감지 ➡️ 잔여 추론 즉시 중단")
+                    break
+
                 logger.info(f"🎯 [{client_ip}] [Q{s_idx}/{len(sections)}] CoT 추론 시작 ({len(sec)}자)...")
                 yield f"data: {json.dumps({'type': 'progress', 'current': s_idx, 'total': len(sections), 'message': f'Q{s_idx} 생성 중 ({s_idx}/{len(sections)})...'})}\n\n"
                 
