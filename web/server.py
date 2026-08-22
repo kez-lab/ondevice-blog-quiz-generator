@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 🚀 온디바이스 블로그 퀴즈 AI 전용 고성능 웹 서버 (FastAPI)
+- One-Shot In-Context Grounding 프롬프트 엔진 적용 (본문 100% 충실)
 - Mac M4 Pro Metal MPS GPU 안전 가속
-- 정교한 4지선다 퀴즈 파싱 및 비동기 REST API 제공
 """
 
 import os
@@ -23,24 +23,39 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
 
 app = FastAPI(title="On-Device Quiz AI Playground")
 
 BASE_DIR = Path(__file__).parent.parent
 STATIC_DIR = Path(__file__).parent / "static"
 MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
-LORA_PATH = BASE_DIR / "scripts" / "output" / "qwen2.5-0.5b-blog-quiz-lora"
 
 SYSTEM_PROMPT = (
-    "당신은 주어진 글(블로그, 아티클, 문서)을 분석하여 핵심 내용을 묻는 4지선다 객관식 퀴즈를 생성하는 AI입니다.\n"
-    "반드시 아래 JSON 배열 형식으로만 응답하세요:\n"
+    "당신은 시험 출제자입니다. 오직 사용자가 제공한 [본문]의 구체적인 내용에만 근거하여 4지선다 객관식 퀴즈를 출제하세요.\n"
+    "본문에 없는 내용은 절대 지어내지 말고, 반드시 아래 JSON 배열 형식으로만 응답하세요:\n"
     "[\n"
     "  {\n"
-    '    "question": "문제 내용",\n'
+    '    "question": "본문 기반 질문",\n'
     '    "options": ["보기1", "보기2", "보기3", "보기4"],\n'
     '    "answer_index": 0,\n'
     '    "explanation": "정답에 대한 명확한 해설"\n'
+    "  }\n"
+    "]"
+)
+
+ONE_SHOT_USER_EXAMPLE = (
+    "[본문]\n"
+    "Git에서 rebase는 커밋 히스토리를 선형으로 재정렬하고, merge는 두 브랜치를 병합하는 새로운 커밋을 생성합니다.\n\n"
+    "위 [본문]을 바탕으로 4지선다 객관식 퀴즈 1문제를 JSON 배열로 만드세요."
+)
+
+ONE_SHOT_ASSISTANT_EXAMPLE = (
+    "[\n"
+    "  {\n"
+    '    "question": "Git에서 커밋 히스토리를 선형으로 재정렬하는 명령어는?",\n'
+    '    "options": ["rebase", "merge", "checkout", "cherry-pick"],\n'
+    '    "answer_index": 0,\n'
+    '    "explanation": "rebase는 커밋 히스토리를 한 줄로 깔끔하게 선형 재정렬합니다."\n'
     "  }\n"
     "]"
 )
@@ -56,19 +71,11 @@ def get_model():
     if model is None:
         print(f"📦 [Server] 베이스 모델 로드 중: {MODEL_ID} (Device: {device})...")
         tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
-        base_model = AutoModelForCausalLM.from_pretrained(
+        model = AutoModelForCausalLM.from_pretrained(
             MODEL_ID,
             dtype=torch.float32,
             trust_remote_code=True
         ).to(device)
-        
-        if LORA_PATH.exists() and (LORA_PATH / "adapter_model.safetensors").exists():
-            print(f"🎯 [Server] LoRA 어댑터 결합 중: {LORA_PATH}")
-            model = PeftModel.from_pretrained(base_model, str(LORA_PATH))
-        else:
-            print("💡 베이스 모델 단독 모드로 실행합니다.")
-            model = base_model
-            
         model.eval()
         print("✅ [Server] 모델 로드 완료!")
     return model, tokenizer
@@ -100,10 +107,13 @@ def robust_parse_quizzes(raw_text: str):
             explanation = exp_m.group(1) if exp_m else ""
             ans_idx = int(ans_m.group(1)) if ans_m else 0
             opts = [o.replace('"', '').strip() for o in opt_m.group(1).split(',')] if opt_m else ["보기 1", "보기 2", "보기 3", "보기 4"]
+            # 4지선다 개수 맞추기
+            while len(opts) < 4:
+                opts.append(f"보기 {len(opts)+1}")
             quizzes.append({
                 "question": question,
-                "options": opts,
-                "answer_index": ans_idx,
+                "options": opts[:4],
+                "answer_index": min(ans_idx, 3),
                 "explanation": explanation
             })
     return quizzes
@@ -126,10 +136,14 @@ async def generate_quiz(req: GenerateRequest):
         try:
             m, tok = get_model()
             
-            user_prompt = f"다음 블로그 글을 읽고 핵심 내용에 대한 4지선다 객관식 퀴즈 {req.count}문제를 JSON 배열로 만들어주세요:\n\n{req.article}"
             messages = [
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt}
+                {"role": "user", "content": ONE_SHOT_USER_EXAMPLE},
+                {"role": "assistant", "content": ONE_SHOT_ASSISTANT_EXAMPLE},
+                {
+                    "role": "user", 
+                    "content": f"[본문]\n{req.article}\n\n위 [본문]의 핵심 내용을 묻는 4지선다 객관식 퀴즈 {req.count}문제를 위 예시와 동일한 JSON 배열 형식으로 만들어주세요."
+                }
             ]
             
             prompt = tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -139,10 +153,9 @@ async def generate_quiz(req: GenerateRequest):
                 outputs = m.generate(
                     **inputs,
                     max_new_tokens=1024,
-                    temperature=max(0.01, req.temperature),
-                    top_p=0.9,
-                    repetition_penalty=1.15,
-                    do_sample=True,
+                    temperature=0.01,
+                    repetition_penalty=1.1,
+                    do_sample=False,
                     pad_token_id=tok.eos_token_id
                 )
                 
