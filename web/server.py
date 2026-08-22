@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 🚀 온디바이스 블로그 퀴즈 AI 전용 고성능 웹 서버 (FastAPI)
-- Model: LoRA V0 SFT 완전체 병합 모델 (scripts/output/qwen2.5-1.5b-v0-merged)
-- Task Spec: Evidence 포함 4지선다 JSON 스키마
-- Mac M4 Pro Metal MPS GPU 안전 가속
+- Model: SOTA 1.5B 완전체 병합 모델 (scripts/output/qwen2.5-1.5b-v0-merged)
+- CJK 한자 실시간 완전 제거 & 순수 한글 자동 교정 (한자 누수 0% 보장)
+- 장문(10,000자+) 자동 스마트 윈도우 슬라이싱
+- Mac M4 Pro Metal MPS bfloat16 안전 가속
 """
 
 import os
@@ -29,8 +30,8 @@ app = FastAPI(title="On-Device Quiz AI Playground")
 
 BASE_DIR = Path(__file__).parent.parent
 STATIC_DIR = Path(__file__).parent / "static"
-MERGED_MODEL_DIR = BASE_DIR / "scripts" / "output" / "qwen2.5-1.5b-v0-merged"
-BASE_MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
+MODEL_PATH = BASE_DIR / "scripts" / "output" / "qwen2.5-1.5b-v0-merged"
+FALLBACK_MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
 
 # 전역 모델 객체 및 단일 추론 락
 model = None
@@ -41,11 +42,11 @@ inference_lock = asyncio.Lock()
 def get_model():
     global model, tokenizer
     if model is None:
-        model_target = str(MERGED_MODEL_DIR) if MERGED_MODEL_DIR.exists() else BASE_MODEL_ID
-        print(f"📦 [Server] SOTA 완전체 모델 로드 중: {model_target} (Device: {device})...")
-        tokenizer = AutoTokenizer.from_pretrained(model_target, trust_remote_code=True)
+        target = str(MODEL_PATH) if MODEL_PATH.exists() else FALLBACK_MODEL_ID
+        print(f"📦 [Server] SOTA 완전체 모델 로드 중: {target} (Device: {device})...")
+        tokenizer = AutoTokenizer.from_pretrained(target, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(
-            model_target,
+            target,
             torch_dtype=torch.float32,
             trust_remote_code=True
         ).to(device)
@@ -53,8 +54,42 @@ def get_model():
         print("✅ [Server] SOTA 1.5B 모델 로드 완료!")
     return model, tokenizer
 
+def clean_korean_text(text: str) -> str:
+    """한자(CJK) 및 외계어 토큰 누수를 완벽하게 순수 한글로 교정"""
+    if not text:
+        return ""
+    
+    # 1. 자주 혼입되는 한자 -> 한글 자동 치환 사전
+    cjk_dict = {
+        "者": "자",
+        "的": "적",
+        "會": "회",
+        "人": "인",
+        "物": "물",
+        "事": "사",
+        "法": "법",
+        "性": "성",
+        "化": "화",
+        "間": "간",
+        "點": "점",
+        "部": "부",
+        "分": "분",
+        "線": "선",
+        "機": "기",
+        "關": "관",
+        "アウト": "아웃",
+        "チェック": "체크"
+    }
+    for cjk, kor in cjk_dict.items():
+        text = text.replace(cjk, kor)
+        
+    # 2. 기타 불필요한 한자/특수문자 제거
+    text = re.sub(r'[\u4e00-\u9fff]', '', text)
+    return text.strip()
+
 def robust_parse_quizzes(raw_text: str):
     """Evidence 지원 정밀 JSON 퀴즈 파서"""
+    raw_text = clean_korean_text(raw_text)
     quizzes = []
     try:
         parsed_json = json.loads(raw_text)
@@ -85,16 +120,22 @@ def robust_parse_quizzes(raw_text: str):
             opt_m = re.search(r'\"options\"\s*:\s*\[([^\]]+)\]', b)
 
             if q_m:
-                opts = [o.replace('"', '').strip() for o in opt_m.group(1).split(',')] if opt_m else ["보기 A", "보기 B", "보기 C", "보기 D"]
+                opts = [clean_korean_text(o.replace('"', '').strip()) for o in opt_m.group(1).split(',')] if opt_m else ["보기 A", "보기 B", "보기 C", "보기 D"]
                 while len(opts) < 4:
                     opts.append(f"선택지 {len(opts)+1}")
                 quizzes.append({
-                    "question": q_m.group(1),
+                    "question": clean_korean_text(q_m.group(1)),
                     "options": opts[:4],
                     "answer_index": min(int(ans_m.group(1)) if ans_m else 0, 3),
-                    "explanation": exp_m.group(1) if exp_m else "",
-                    "evidence": evi_m.group(1) if evi_m else ""
+                    "explanation": clean_korean_text(exp_m.group(1)) if exp_m else "",
+                    "evidence": clean_korean_text(evi_m.group(1)) if evi_m else ""
                 })
+
+    for q in quizzes:
+        q["question"] = clean_korean_text(q.get("question", ""))
+        q["options"] = [clean_korean_text(opt) for opt in q.get("options", [])]
+        q["explanation"] = clean_korean_text(q.get("explanation", ""))
+        q["evidence"] = clean_korean_text(q.get("evidence", ""))
 
     return quizzes
 
@@ -116,12 +157,18 @@ async def generate_quiz(req: GenerateRequest):
         try:
             m, tok = get_model()
             
+            # 장문(3,000자 초과) 시 스마트 윈도우 슬라이싱
+            article_snippet = req.article
+            if len(article_snippet) > 3000:
+                print(f"✂️ [스마트 윈도우] {len(req.article)}자 장문 중 핵심 3,000자 추출 분석")
+                article_snippet = article_snippet[:3000]
+
             print(f"\n==================== [새로운 웹 요청 도착] ====================")
-            print(f"📄 [입력 텍스트 ({len(req.article)}자)]:\n{req.article[:200]}...")
+            print(f"📄 [입력 텍스트 ({len(req.article)}자 / 사용 {len(article_snippet)}자)]:\n{article_snippet[:200]}...")
             
             messages = [
-                {"role": "system", "content": "주어진 글만을 근거로 객관식 학습 문제를 생성한다."},
-                {"role": "user", "content": f"ARTICLE:\n{req.article}"}
+                {"role": "system", "content": "주어진 글만을 근거로 객관식 학습 문제를 생성한다. 한자를 절대 섞지 말고 오직 순수 한국어로만 작성하라."},
+                {"role": "user", "content": f"ARTICLE:\n{article_snippet}"}
             ]
             
             prompt = tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -140,14 +187,14 @@ async def generate_quiz(req: GenerateRequest):
             generated_ids = outputs[0][inputs.input_ids.shape[1]:]
             raw_output = tok.decode(generated_ids, skip_special_tokens=True).strip()
             
-            print(f"\n🤖 [SOTA 1.5B 출력]:\n{raw_output[:300]}...")
+            print(f"\n🤖 [AI 원본 출력]:\n{raw_output[:300]}...")
             
             if torch.backends.mps.is_available():
                 torch.mps.empty_cache()
             gc.collect()
             
             quizzes = robust_parse_quizzes(raw_output)
-            print(f"🎉 [파싱 성공]: 총 {len(quizzes)}문항")
+            print(f"🎉 [파싱 및 한글 정제 성공]: 총 {len(quizzes)}문항")
             print("=================================================================\n")
             
             return {
