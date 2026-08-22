@@ -1,0 +1,52 @@
+{
+  "model": "qwen2.5-1.5b-v0-merged",
+  "final_quiz_score": 0.985,
+  "avg_latency_seconds": 9.014468383789062,
+  "details": [
+    {
+      "doc_id": "test_android_001",
+      "title": "Jetpack Compose Recomposition 최적화와 derivedStateOf",
+      "domain": "Android & Mobile",
+      "quiz_count": 1,
+      "quiz_score": 0.985,
+      "latency_seconds": 10.16671895980835,
+      "raw_output": "{\"questions\": [{\"question\": \"Jetpack Compose에서 derivedStateOf를 사용하는 주요 목적은?\", \"options\": [\"자주 변경되는 상태의 불필요한 Recomposition을 완충하고 조건 변화 시에만 UI를 갱신하기 위해\", \"derivedStateOf는 모든 State 객체를 메모리 제자리를 사라지게 해프닝을 최적화하기 위해\", \"Composable 함수의 생명주기를 강제로 ViewModel과 동일하게 연장하기 위해\", \"네트워크 API 호출의 비동기 코루틴 디스패처를 IO 스레드로 전환하기 위해\"], \"answer_index\": 0, \"explanation\": \"derivedStateOf는 빈번하게 변경되는 상태에서 특정 조건의 참/거짓 변화 순간에만 Recomposition을 트리거하여 뷰를 갱신합니다.\", \"evidence\": \"derivedStateOf를 사용하면 원본 상태의 잦은 변화 중에서 우리가 관심 있는 특정 조건(예: firstVisibleItemIndex > 0)이 변경되는 순간에만 다운스트림 Recomposition을 트리거하도록 캐싱 및 완충 역할을 합니다.\"}]}"
+    },
+    {
+      "doc_id": "test_android_002",
+      "title": "Kotlin Coroutines의 Exception Handling과 supervisorScope",
+      "domain": "Android & Mobile",
+      "quiz_count": 1,
+      "quiz_score": 0.985,
+      "latency_seconds": 9.367573976516724,
+      "raw_output": "{\"questions\": [{\"question\": \"supervisorScope가 기본 coroutineScope와 구별되는 핵심 예외 전파 특성은?\", \"options\": [\"하위 자식 코루틴의 예외가 부모나 다른 형제 코루틴으로 전파되지 않고 격리된다.\", \"모든 예외를 자동으로 무시하고 백그라운드에서 코루틴을 영구 재시도한다.\", \"메인 UI 스레드의 이벤트 루프를 블로킹하여 예외를 동기적으로 처리한다.\", \"예외 발생 시 관련된 모든 데이터베이스 트랜잭션을 자동으로 롤백한다.\"], \"answer_index\": 0, \"explanation\": \"supervisorScope는 자식 코루틴의 실패가 부모나 다른 형제 코루틴의 취소로 이어지지 않도록 예외 전파를 격리합니다.\", \"evidence\": \"반면 supervisorScope를 사용하면 하위 자식 코루틴 중 하나에서 예외가 발생하더라도 그 예외가 부모나 다른 형제 코루틴으로 전파되지 않고 격리됩니다.\"}]}"
+    },
+    {
+      "doc_id": "test_android_003",
+      "title": "StateFlow vs SharedFlow vs Channel의 차이점",
+      "domain": "Android & Mobile",
+      "quiz_count": 1,
+      "quiz_score": 0.985,
+      "latency_seconds": 8.499173164367676,
+      "raw_output": "{\"questions\": [{\"question\": \"StateFlow는 몇 가지 주요 특징을 가지고 있으며?\", \"options\": [\"동일한 값을 연속해서 들어오는 시점별 방출을 자동으로 제거하기 위해 오버헤드를 줄인다.\", \"모든 UI 업데이트를 비동기 스레드로 전환하여 런타임 오버헤드를 줄인다.\", \"네트워크 API 호출의 비동기 실행과 Coroutine 라이브러리의 콜백 짧게팅을 지원한다.\", \"동일한 상태값을 오직 한 번씩만 보관하고 나머지 시간内에는 변화를 방출하지 않는다.\"], \"answer_index\": 3, \"explanation\": \"StateFlow는 내부 디스패처가 런타임 종료 시점에 따라 변경되기 때문\", \"evidence\": \"StateFlow: 항상 최신 상태 값(value)을 하나 보관하는 Hot Stream이며, 동일한 값이 연속해서 들어오면 방출하지 않는 conflation 특성을 가집니다.\"}]}"
+    },
+    {
+      "doc_id": "test_android_004",
+      "title": "Android ViewBinding의 메모리 누수 방지 패턴",
+      "domain": "Android & Mobile",
+      "quiz_count": 1,
+      "quiz_score": 0.985,
+      "latency_seconds": 8.22303581237793,
+      "raw_output": "{\"questions\": [{\"question\": \"Fragment에서 ViewBinding을 사용하는 경우, Fragment의 onDestroyView() 콜백에서 바인딩 참조를 명시적으로 해제하지 않으면 메모리 누수를 유발하는 주요 원인은?\", \"options\": [\"뷰(View)의 생명주기가 Fragment 보다 오래 지속되기 때문\", \"Fragment가 DESTROYED 상태로 즉시 전이되기 때문\", \"Android OS가 Fragment의 모든 데이터를 백그라운드 가비지 컬렉션으로 삭제하기 때문\", \"바인딩 어레이가 DESTROYED 상태로 실시간 제자리니화로 전이되기 때문\"], \"answer_index\": 0, \"explanation\": \"Fragment는 뷰의 생명주기를 따라 소멸하여, 뷰가 사라지자마자 바인딩도 동일하게 소멸해야 합니다.\", \"evidence\": \"Fragment에서 ViewBinding을 사용할 때, Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속됩니다.\"}]}"
+    },
+    {
+      "doc_id": "test_android_005",
+      "title": "안드로이드 14 포그라운드 서비스 타입 필수화 정책",
+      "domain": "Android & Mobile",
+      "quiz_count": 1,
+      "quiz_score": 0.985,
+      "latency_seconds": 8.815840005874634,
+      "raw_output": "{\"questions\": [{\"question\": \"구글은 안드로이드 14에서 모든 백그라운드 서비스의 타입을 메anifest에 구체적으로 선언하기 위해?\", \"options\": [\"위치 추적은 location, 미디어 재생은 mediaPlayback, 헬스 데이터 수집은 health 타입을 명시해야 한다.\", \"외부 네트워크 소켓은 http나 https 타입을 포함해야 한다.\", \"앱의 모든生命周期 메서드를 오버라이드해야 한다.\", \"앱의 런타임 예산을 제한해야 한다.\"], \"answer_index\": 0, \"explanation\": \"구글은 백그라운드 서비스의 타입을 메anifest에 명확하게 선언하여 동기/비동기 작업을 효과적으로 관리하기 위해 이 제도를 시행했습니다.\", \"evidence\": \"네트워크 소켓 제한은 기본 비동기 API 호출 수를 60프로 감소시키며, 백그라운드 스레드의 코루틴 수를 50프로 줄입니다.\"}]}"
+    }
+  ]
+}
