@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 🚀 온디바이스 블로그 퀴즈 AI 전용 고성능 웹 서버 (FastAPI)
-- Mac M4 Pro Metal MPS GPU 안전 가속 (메모리 상한선 70% 제어)
+- Mac M4 Pro Metal MPS GPU 안전 가속
 - 정교한 4지선다 퀴즈 파싱 및 비동기 REST API 제공
 """
 
@@ -12,8 +12,9 @@ import re
 import asyncio
 from pathlib import Path
 
-# Mac MPS 메모리 안전장치 설정
-os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.7"
+# 불필요하거나 충돌을 일으키는 환경 변수 제거
+for k in ["PYTORCH_MPS_HIGH_WATERMARK_RATIO", "PYTORCH_MPS_LOW_WATERMARK_RATIO"]:
+    os.environ.pop(k, None)
 
 import torch
 import uvicorn
