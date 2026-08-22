@@ -147,7 +147,7 @@ class LocalQuizGenerator private constructor(
     }
 
     class Builder(private val context: Context) {
-        private var modelSource: ModelSource = ModelSource.HuggingFace("kez-lab/quiz-korean")
+        private var modelSource: ModelSource = ModelSource.HuggingFace("kez-lab/gemma-2-2b-quiz-korean")
         private var maxTokens: Int = 512
         private var temperature: Float = 0.3f
         private var topK: Int = 40

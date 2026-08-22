@@ -6,17 +6,18 @@
 [![Zero Server Cost](https://img.shields.io/badge/Server_Cost-$0_Forever-success.svg?style=for-the-badge)](https://github.com/kez-lab/ondevice-blog-quiz-generator)
 [![Privacy](https://img.shields.io/badge/Privacy-100%25_Offline_Safe-critical.svg?style=for-the-badge)](https://github.com/kez-lab/ondevice-blog-quiz-generator)
 
-[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-kez--lab%2Fquiz--korean-yellow?logo=huggingface)](https://huggingface.co/kez-lab/quiz-korean)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-kez--lab%2Fgemma--2--2b--quiz--korean-yellow?logo=huggingface)](https://huggingface.co/kez-lab/gemma-2-2b-quiz-korean)
+[![Base Model](https://img.shields.io/badge/Base_Model-Google_Gemma--2--2B-blue?logo=google)](https://ai.google.dev/edge)
+[![QuizScore](https://img.shields.io/badge/QuizScore-0.9850_%2F_1.000-emerald)](https://github.com/kez-lab/ondevice-blog-quiz-generator)
 [![Platform](https://img.shields.io/badge/Platform-Android_14+-green.svg?logo=android)](https://developer.android.com)
-[![JitPack](https://jitpack.io/v/kez-lab/ondevice-blog-quiz-generator.svg)](https://jitpack.io/#kez-lab/ondevice-blog-quiz-generator)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 <br/>
 
-**클라우드 서버 0원 · 네트워크 연결 0% · 100% 기기 로컬 NPU/GPU 구동**  
-사용자가 읽고 있는 블로그 글, 기술 아티클, 개인 메모를 분석하여 **실시간 4지선다 객관식 퀴즈를 로컬에서 즉시 자동 생성하는 안드로이드 온디바이스 AI SDK & 파인튜닝 파이프라인**입니다.
+**Google Gemma-2-2B 기반 · 클라우드 서버 0원 · 네트워크 연결 0% · 100% 기기 로컬 NPU/GPU 구동**  
+사용자가 읽고 있는 블로그 글, 기술 아티클, 개인 메모를 분석하여 **Evidence 기반 무결점 4지선다 객관식 퀴즈를 로컬에서 즉시 자동 생성하는 안드로이드 온디바이스 AI SDK & 파인튜닝 파이프라인**입니다.
 
-[📱 SDK 빠른 시작](#-android-sdk-quickstart) • [⚡ 온디바이스 AI란?](#-왜-온디바이스-ai-on-device-ai인가) • [🏗️ 아키텍처](#️-온디바이스-시스템-아키텍처) • [📖 12단계 학습 핸드북](docs/README.md)
+[📱 SDK 빠른 시작](#-android-sdk-quickstart) • [⚡ 온디바이스 AI란?](#-왜-온디바이스-ai-on-device-ai인가) • [🏗️ 아키텍처](#️-온디바이스-시스템-아키텍처) • [📖 시행착오 회고록](docs/post_mortem_and_engineering_lessons.md)
 
 </div>
 
