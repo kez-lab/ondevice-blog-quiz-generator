@@ -187,17 +187,45 @@ def robust_parse_single_quiz(raw_text: str):
                 "evidence": evi_m.group(1) if evi_m else ""
             }
 
-    # 4. <thought> 블록에서 Evidence 및 정답 해설 자동 보강
+    # 4. <thought> 블록에서 Evidence, 정답, 4개 선택지 및 해설 자동 보강
     if quiz_obj:
+        thought_q = re.search(r'2\.\s*출제 질문[^\n]*\n\s*\"([^\"]+)\"', raw_text)
         thought_evi = re.search(r'1\.\s*본문 핵심 근거[^\n]*\n\s*\"([^\"]+)\"', raw_text)
-        thought_target = re.search(r'3\.\s*명확한 단일 정답[^\n]*\n\s*\"([^\"]+)\"', raw_text)
+        thought_ans = re.search(r'3\.\s*명확한 단일 정답[^\n]*\n\s*\"([^\"]+)\"', raw_text)
+        thought_d1 = re.search(r'오답 1\s*:\s*([^\n]+)', raw_text)
+        thought_d2 = re.search(r'오답 2\s*:\s*([^\n]+)', raw_text)
+        thought_d3 = re.search(r'오답 3\s*:\s*([^\n]+)', raw_text)
+        thought_idx_m = re.search(r'정답을\s*([A-D])\s*번', raw_text)
+
+        if not quiz_obj.get("question") and thought_q:
+            quiz_obj["question"] = thought_q.group(1).strip()
+
+        # 선택지가 더미("선택지 A")이거나 잘렸을 경우 thought의 정답 및 오답 3개로 완전 재구성
+        has_dummy_opts = any("선택지 " in opt for opt in quiz_obj.get("options", []))
+        if has_dummy_opts and thought_ans and thought_d1 and thought_d2 and thought_d3:
+            ans_text = thought_ans.group(1).strip()
+            d1_text = thought_d1.group(1).strip()
+            d2_text = thought_d2.group(1).strip()
+            d3_text = thought_d3.group(1).strip()
+            
+            ans_idx = {"A": 0, "B": 1, "C": 2, "D": 3}.get(thought_idx_m.group(1).upper() if thought_idx_m else "B", 1)
+            distractors = [d1_text, d2_text, d3_text]
+            new_options = []
+            for i in range(4):
+                if i == ans_idx:
+                    new_options.append(ans_text)
+                else:
+                    new_options.append(distractors.pop(0) if distractors else f"대체 보기 {i+1}")
+            quiz_obj["options"] = new_options
+            quiz_obj["answer_index"] = ans_idx
 
         if not quiz_obj.get("evidence") and thought_evi:
             quiz_obj["evidence"] = thought_evi.group(1).strip()
 
         if not quiz_obj.get("explanation"):
-            if thought_target and quiz_obj.get("evidence"):
-                quiz_obj["explanation"] = f"본문에서 '{quiz_obj['evidence'][:50]}...'라고 언급되어 있으므로, '{thought_target.group(1)[:50]}'을 설명하는 {chr(65 + quiz_obj.get('answer_index', 0))}번이 정답입니다."
+            target_str = thought_ans.group(1).strip() if thought_ans else ""
+            if target_str and quiz_obj.get("evidence"):
+                quiz_obj["explanation"] = f"본문에서 '{quiz_obj['evidence'][:50]}...'라고 언급되어 있으므로, '{target_str[:50]}'을 설명하는 {chr(65 + quiz_obj.get('answer_index', 0))}번이 정답입니다."
             elif quiz_obj.get("evidence"):
                 quiz_obj["explanation"] = f"본문의 '{quiz_obj['evidence'][:60]}...' 문장을 근거로 {chr(65 + quiz_obj.get('answer_index', 0))}번이 정답입니다."
             else:
@@ -242,7 +270,7 @@ def generate_single_quiz_sync(sec_text: str, s_idx: int, total_count: int):
     with torch.no_grad():
         outputs = m.generate(
             **inputs,
-            max_new_tokens=512,
+            max_new_tokens=768,
             temperature=0.01,
             repetition_penalty=1.1,
             do_sample=False,
