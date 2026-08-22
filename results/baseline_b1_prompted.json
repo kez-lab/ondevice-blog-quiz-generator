@@ -1,0 +1,46 @@
+{
+  "baseline": "B1_Prompted",
+  "final_quiz_score": 0.9620000000000001,
+  "details": [
+    {
+      "doc_id": "test_android_001",
+      "title": "Jetpack Compose Recomposition 최적화와 derivedStateOf",
+      "domain": "Android & Mobile",
+      "quiz_count": 3,
+      "quiz_score": 0.9700000000000001,
+      "raw_output": "```json\n[\n  {\n    \"question\": \"Jetpack Compose에서 상태가 변경되면 어떤 이벤트가 발생?\",\n    \"options\": [\"A. 모든 Composable 함수 재실행\", \"B. 일부 Composable 함수 재실행\", \"C. 모든 Composable 함수 재구성\", \"D. 일부 Composable 함수 재구성\"],\n    \"answer_index\": 0,\n    \"explanation\": \"Recomposition는 상태가 변경될 때마다 모든 Composable 함수가 재실행됩니다.\",\n    \"evidence\": \"본문에서 'Recomposition이 발생합니다.'와 'Composable 함수들이 다시 실행되는 Recomposition'\"\n  },\n  {\n    \"question\": \"왜 자주 변경되는 상태를 직접 구독하여 UI 분기 처리를 하는 것이 좋지 않다고 말하는 이유?\",\n    \"options\": [\"A. 불필요한 Recomposition이 발생한다.\", \"B. 프레임 드랍이 발생한다.\", \"C. UI 분기를 쉽게 한다.\", \"D. 모든 Composable 함수 재실행한다.\"],\n    \"answer_index\": 1,\n    \"explanation\": \"불필요한 Recomposition이 과도하게 발생하여 프레임 드랍이 생길 수 있기 때문에 좋지 않다고 말합니다.\",\n    \"evidence\": \"본문에서 '불필요한 Recomposition이 과도하게 발생하여 프레임 드랍이 생깁니다.'\"\n  },\n  {\n    \"question\": \"derivedStateOf를 사용하는 이유는 무엇인가요?\",\n    \"options\": [\"A. 상태를 직접적으로 읽는 데 도움이 됩니다.\", \"B. 상태를 추적하고 조작하기 쉽습니다.\", \"C. 상태를 캐싱 및 완충 역할을 합니다.\", \"D. 모든 Composable 함수 재실행을 방지합니다.\"],\n    \"answer_index\": 2,\n    \"explanation\": \"derivedStateOf는 원본 상태의 잦은 변화 중에서 특정 조건이 변경되는 순간에만 다운스트림 Recomposition을 트리거하도록 캐싱 및 완충 역할을 합니다.\",\n    \"evidence\": \"본문에서 '단, derivedStateOf 내부에서 State 객체를 읽지 않고 일반 변수나 매번 계산되는 무상태 값을 전달하면 아무런 캐싱 효과를 얻지 못하므로 주의해야 합니다.'\"\n  }\n]\n```"
+    },
+    {
+      "doc_id": "test_android_002",
+      "title": "Kotlin Coroutines의 Exception Handling과 supervisorScope",
+      "domain": "Android & Mobile",
+      "quiz_count": 3,
+      "quiz_score": 0.93,
+      "raw_output": "```json\n[\n  {\n    \"question\": \"코루틴의 연쇄 취소와 supervisorScope의 특징\",\n    \"options\": [\"A. 모든 코루틴이 연쇄 취소됨\", \"B. supervisorScope 내부에서는 예외가 전파되지 않음\", \"C. launch로 실행된 코루틴의 예외는 UncaughtExceptionHandler로 전달됨\", \"D. supervisorScope는 기본CoroutineScope보다 더 강력함\"],\n    \"answer_index\": 2,\n    \"explanation\": \"코루틴의 연쇄 취소는 기본CoroutineScope 내에서 발생했을 때 모든 코루틴이 취소되지만, supervisorScope 내에서는 예외가 전파되지 않고 각 코루틴이 독립적으로 취소됩니다.\",\n    \"evidence\": \"코루틴의 연쇄 취소와 supervisorScope의 특징 설명\"\n  },\n  {\n    \"question\": \"코루틴의 예외 처리 방법\",\n    \"options\": [\"A. launch로 실행된 코루틴의 예외는 UncaughtExceptionHandler로 전달됨\", \"B. 모든 코루틴이 예외를 던지면 모두 취소됨\", \"C. try-catch 블록을 사용하여 예외를 처리할 수 있음\", \"D. supervisorScope는 launch로 실행된 코루틴의 예외를 전송하지 않음\"],\n    \"answer_index\": 3,\n    \"explanation\": \"코루틴의 예외 처리는 launch로 실행된 코루틴의 예외는 UncaughtExceptionHandler로 전달되지만, supervisorScope 내에서는 예외가 전파되지 않고 각 코루틴이 독립적으로 취소됩니다.\",\n    \"evidence\": \"코루틴의 예외 처리 방법 설명\"\n  },\n  {\n    \"question\": \"코루틴의 예외 처리 방법\",\n    \"options\": [\"A. launch로 실행된 코루틴의 예외는 UncaughtExceptionHandler로 전달됨\", \"B. 모든 코루틴이 예외를 던지면 모두 취소됨\", \"C. try-catch 블록을 사용하여 예외를 처리할 수 있음\", \"D. supervisorScope는 launch로 실행된 코루틴의 예외를 전송하지 않음\"],\n    \"answer_index\": 3,\n    \"explanation\": \"코루틴의 예외 처리는 launch로 실행된 코루틴의 예외는 UncaughtExceptionHandler로 전달되지만, supervisorScope 내에서는 예외가 전파되지 않고 각 코루틴이 독립적으로 취소됩니다.\",\n    \"evidence\": \"코루틴의 예외 처리 방법 설명\"\n  }\n]\n```"
+    },
+    {
+      "doc_id": "test_android_003",
+      "title": "StateFlow vs SharedFlow vs Channel의 차이점",
+      "domain": "Android & Mobile",
+      "quiz_count": 3,
+      "quiz_score": 0.9700000000000001,
+      "raw_output": "```json\n[\n  {\n    \"question\": \"StateFlow는 무엇을 보관하고, 어떻게 동작하는가?\",\n    \"options\": [\"Hot Stream\", \"Cold Stream\", \"Single Event\", \"Multi-Event\"],\n    \"answer_index\": 0,\n    \"explanation\": \"StateFlow는 항상 최신 상태 값을 하나 보관하며, 동일한 값이 연속적으로 들어오면 방출되지 않습니다.\",\n    \"evidence\": \"안드로이드 비동기 데이터 스트림 처리를 위한 세 가지 도구의 핵심 특징은 다음과 같습니다:\\n\\n1. StateFlow: 항상 최신 상태 값(value)을 하나 보관하는 Hot Stream이며, 동일한 값이 연속해서 들어오면 방출하지 않는 conflation 특성을 가집니다. UI 상태 홀더로 가장 적합합니다.\\n\\n\"\n  },\n  {\n    \"question\": \"SharedFlow는 무엇을 브로드캐스트할 수 있으며, 어떤 옵션을 사용할 수 있습니까?\",\n    \"options\": [\"UI 상태\", \"데이터 변경\", \"사용자 입력\", \"알림\"],\n    \"answer_index\": 1,\n    \"explanation\": \"SharedFlow는 여러 구독자에게 이벤트를 브로드캐스트할 수 있으며, replay 버퍼 크기를 커스텀 설정하여 단발성 이벤트나 캐시를 조절할 수 있습니다.\",\n    \"evidence\": \"안드로이드 비동기 데이터 스트림 처리를 위한 세 가지 도구의 핵심 특징은 다음과 같습니다:\\n\\n1. StateFlow: 항상 최신 상태 값(value)을 하나 보관하는 Hot Stream이며, 동일한 값이 연속해서 들어오면 방출하지 않는 conflation 특성을 가집니다. UI 상태 홀더로 가장 적합합니다.\\n\\n\"\n  },\n  {\n    \"question\": \"Channel은 무엇을 처리하는 유니캐스트 큐를 제공하며, 어떤 특징이 있다?\",\n    \"options\": [\"UI 상태\", \"데이터 전송\", \"사용자 입력\", \"알림\"],\n    \"answer_index\": 2,\n    \"explanation\": \"Channel은 1:1 파이프라인 형태의 유니캐스트 큐를 제공하며, 한 소비자가 이벤트를 소비하면 큐에서 제거되므로, 스낵바 표시나 화면 네비게이션 같은 1회성 Action 처리에 적합합니다.\",\n    \"evidence\": \"안드로이드 비동기 데이터 스트림 처리를 위한 세 가지 도구의 핵심 특징은 다음과 같습니다:\\n\\n1. StateFlow: 항상 최신 상태 값(value)을 하나 보관하는 Hot Stream이며, 동일한 값이 연속해서 들어오면 방출하지 않는 conflation 특성을 가집니다. UI 상태 홀더로 가장 적합합니다.\\n\\n\"\n  }\n]\n```"
+    },
+    {
+      "doc_id": "test_android_004",
+      "title": "Android ViewBinding의 메모리 누수 방지 패턴",
+      "domain": "Android & Mobile",
+      "quiz_count": 3,
+      "quiz_score": 0.9700000000000001,
+      "raw_output": "```json\n[\n  {\n    \"question\": \"Fragment에서 ViewBinding을 사용할 때, Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되며, 이로 인해 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 심각한 메모리 누수(Memory Leak)를 유발합니다.\",\n    \"options\": [\"A. ViewBinding\", \"B. Fragment\", \"C. Activity\", \"D. ViewModel\"],\n    \"answer_index\": 2,\n    \"explanation\": \"이 문제는 Fragment의 인스턴스 생명주기와 메모리 누수에 대한 설명입니다. Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되므로, 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 메모리 누수가 발생합니다.\",\n    \"evidence\": \"Fragment에서 ViewBinding을 사용할 때, Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되며, 이로 인해 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 심각한 메모리 누수(Memory Leak)를 유발합니다.\"\n  },\n  {\n    \"question\": \"Fragment에서 ViewBinding을 사용할 때, Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되며, 이로 인해 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 심각한 메모리 누수(Memory Leak)를 유발합니다.\",\n    \"options\": [\"A. ViewBinding\", \"B. Fragment\", \"C. Activity\", \"D. ViewModel\"],\n    \"answer_index\": 2,\n    \"explanation\": \"이 문제는 Fragment의 인스턴스 생명주기와 메모리 누수에 대한 설명입니다. Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되므로, 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 메모리 누수가 발생합니다.\",\n    \"evidence\": \"Fragment에서 ViewBinding을 사용할 때, Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되며, 이로 인해 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 심각한 메모리 누수(Memory Leak)를 유발합니다.\"\n  },\n  {\n    \"question\": \"Fragment에서 ViewBinding을 사용할 때, Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되며, 이로 인해 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 심각한 메모리 누수(Memory Leak)를 유발합니다.\",\n    \"options\": [\"A. ViewBinding\", \"B. Fragment\", \"C. Activity\", \"D. ViewModel\"],\n    \"answer_index\": 2,\n    \"explanation\": \"이 문제는 Fragment의 인스턴스 생명주기와 메모리 누수에 대한 설명입니다. Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되므로, 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 메모리 누수가 발생합니다.\",\n    \"evidence\": \"Fragment에서 ViewBinding을 사용할 때, Fragment의 인스턴스 생명주기는 뷰(View)의 생명주기보다 오래 지속되며, 이로 인해 화면에서 사라진 View 계층 구조 전체가 메모리에 남아 심각한 메모리 누수(Memory Leak)를 유발합니다.\"\n  }\n]\n```"
+    },
+    {
+      "doc_id": "test_android_005",
+      "title": "안드로이드 14 포그라운드 서비스 타입 필수화 정책",
+      "domain": "Android & Mobile",
+      "quiz_count": 3,
+      "quiz_score": 0.9700000000000001,
+      "raw_output": "```json\n[\n  {\n    \"question\": \"Google는 모든 포그라운드 서비스에 대해 무엇을 강제하고 있습니다?\",\n    \"options\": [\n      \"A. 매니페스트에 특정 서비스 타입을 선언할 것을 요구합니다.\",\n      \"B. 모든 서비스를 즉시 종료시키게 됩니다.\",\n      \"C. 서비스의 실행 시간을 제한합니다.\",\n      \"D. 서비스의 성능을 개선합니다.\"\n    ],\n    \"answer_index\": 0,\n    \"explanation\": \"Google는 모든 포그라운드 서비스에 대해 매니페스트에 구체적인 서비스 타입(foregroundServiceType)을 선언하도록 강제합니다.\",\n    \"evidence\": \"구글은 안드로이드 14(API 34)부터 백그라운드 배터리 최적화와 사용자 개인정보 보호를 위해 모든 포그라운드 서비스(Foreground Service)에 대해 매니페스트에 구체적인 서비스 타입(foregroundServiceType)을 선언하도록 강제했습니다. 예를 들어 위치 추적은 location, 미디어 재생은 mediaPlayback, 헬스 데이터 수집은 health 타입을 명시해야 합니다. 타입이 명시되지 않거나 선언된 타입과 실제 동작이 불일치하면 시스템에 의해 SecurityException이 발생하며 앱이 강제 종료됩니다.\"\n  },\n  {\n    \"question\": \"위의 규정이 적용되는 서비스 타입에는 어떤 것이 포함되어 있습니까?\",\n    \"options\": [\n      \"A. GPS 위치 추적\",\n      \"B. 비디오 재생\",\n      \"C. 웹 브라우징\",\n      \"D. 이메일 수신\"\n    ],\n    \"answer_index\": 1,\n    \"explanation\": \"위의 규정이 적용되는 서비스 타입에는 비디오 재생이 포함되어 있습니다.\",\n    \"evidence\": \"예를 들어 위치 추적은 location, 미디어 재생은 mediaPlayback, 헬스 데이터 수집은 health 타입을 명시해야 합니다. 타입이 명시되지 않거나 선언된 타입과 실제 동작이 불일치하면 시스템에 의해 SecurityException이 발생하며 앱이 강제 종료됩니다.\"\n  },\n  {\n    \"question\": \"포그라운드 서비스가 매니페스트에 적절히 설정되지 않은 경우, 앱이 어떻게 될까요?\",\n    \"options\": [\n      \"A. 앱이 정상적으로 작동합니다.\",\n      \"B. 앱이 강제 종료되며 SecurityException이 발생합니다.\",\n      \"C. 앱의 실행 시간이 줄어듭니다.\",\n      \"D. 앱의 성능이 향상됩니다.\"\n    ],\n    \"answer_index\": 2,\n    \"explanation\": \"포그라운드 서비스가 매니페스트에 적절히 설정되지 않은 경우, 앱이 앱의 강제 종료됩니다.\",\n    \"evidence\": \"예를 들어 위치 추적은 location, 미디어 재생은 mediaPlayback, 헬스 데이터 수집은 health 타입을 명시해야 합니다. 타입이 명시되지 않거나 선언된 타입과 실제 동작이 불일치하면 시스템에 의해 SecurityException이 발생하며 앱이 강제 종료됩니다.\"\n  }\n]\n```"
+    }
+  ]
+}
