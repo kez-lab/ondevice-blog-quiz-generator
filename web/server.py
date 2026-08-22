@@ -83,43 +83,67 @@ def split_into_coherent_sections(full_text: str, target_count: int = 3):
     return [full_text[i*chunk_len : (i+1)*chunk_len][:800] for i in range(target_count)]
 
 def robust_parse_single_quiz(raw_text: str):
-    """출력 문자열에서 퀴즈 객체 추출"""
+    """출력 문자열에서 퀴즈 객체 추출 및 thought 기반 근거 보강"""
+    quiz_obj = None
+
+    # 1. ```json ... ``` 블록 추출
     json_match = re.search(r'```json\s*(\{.*?\})\s*```', raw_text, re.DOTALL)
     if json_match:
         try:
             parsed = json.loads(json_match.group(1))
             if "questions" in parsed and len(parsed["questions"]) > 0:
-                return parsed["questions"][0]
+                quiz_obj = parsed["questions"][0]
         except Exception:
             pass
 
-    match_arr = re.search(r'\[\s*\{.*\}\s*\]', raw_text, re.DOTALL)
-    if match_arr:
-        try:
-            arr = json.loads(match_arr.group(0))
-            if len(arr) > 0:
-                return arr[0]
-        except Exception:
-            pass
+    # 2. JSON 배열
+    if not quiz_obj:
+        match_arr = re.search(r'\[\s*\{.*\}\s*\]', raw_text, re.DOTALL)
+        if match_arr:
+            try:
+                arr = json.loads(match_arr.group(0))
+                if len(arr) > 0:
+                    quiz_obj = arr[0]
+            except Exception:
+                pass
 
-    q_m = re.search(r'\"question\"\s*:\s*\"([^\"]+)\"', raw_text)
-    exp_m = re.search(r'\"explanation\"\s*:\s*\"([^\"]+)\"', raw_text)
-    evi_m = re.search(r'\"evidence\"\s*:\s*\"([^\"]+)\"', raw_text)
-    ans_m = re.search(r'\"answer_index\"\s*:\s*(\d+)', raw_text)
-    opt_m = re.search(r'\"options\"\s*:\s*\[([^\]]+)\]', raw_text)
+    # 3. 정규식 추출
+    if not quiz_obj:
+        q_m = re.search(r'\"question\"\s*:\s*\"([^\"]+)\"', raw_text)
+        exp_m = re.search(r'\"explanation\"\s*:\s*\"([^\"]+)\"', raw_text)
+        evi_m = re.search(r'\"evidence\"\s*:\s*\"([^\"]+)\"', raw_text)
+        ans_m = re.search(r'\"answer_index\"\s*:\s*(\d+)', raw_text)
+        opt_m = re.search(r'\"options\"\s*:\s*\[([^\]]+)\]', raw_text)
 
-    if q_m:
-        opts = [o.replace('"', '').strip() for o in opt_m.group(1).split(',')] if opt_m else ["선택지 A", "선택지 B", "선택지 C", "선택지 D"]
-        while len(opts) < 4:
-            opts.append(f"선택지 {len(opts)+1}")
-        return {
-            "question": q_m.group(1),
-            "options": opts[:4],
-            "answer_index": min(int(ans_m.group(1)) if ans_m else 0, 3),
-            "explanation": exp_m.group(1) if exp_m else "",
-            "evidence": evi_m.group(1) if evi_m else ""
-        }
-    return None
+        if q_m:
+            opts = [o.replace('"', '').strip() for o in opt_m.group(1).split(',')] if opt_m else ["선택지 A", "선택지 B", "선택지 C", "선택지 D"]
+            while len(opts) < 4:
+                opts.append(f"선택지 {len(opts)+1}")
+            quiz_obj = {
+                "question": q_m.group(1),
+                "options": opts[:4],
+                "answer_index": min(int(ans_m.group(1)) if ans_m else 0, 3),
+                "explanation": exp_m.group(1) if exp_m else "",
+                "evidence": evi_m.group(1) if evi_m else ""
+            }
+
+    # 4. <thought> 블록에서 Evidence 및 정답 해설 자동 보강
+    if quiz_obj:
+        thought_evi = re.search(r'1\.\s*본문 핵심 근거[^\n]*\n\s*\"([^\"]+)\"', raw_text)
+        thought_target = re.search(r'3\.\s*명확한 단일 정답[^\n]*\n\s*\"([^\"]+)\"', raw_text)
+
+        if not quiz_obj.get("evidence") and thought_evi:
+            quiz_obj["evidence"] = thought_evi.group(1).strip()
+
+        if not quiz_obj.get("explanation"):
+            if thought_target and quiz_obj.get("evidence"):
+                quiz_obj["explanation"] = f"본문에서 '{quiz_obj['evidence'][:50]}...'라고 언급되어 있으므로, '{thought_target.group(1)[:50]}'을 설명하는 {chr(65 + quiz_obj.get('answer_index', 0))}번이 정답입니다."
+            elif quiz_obj.get("evidence"):
+                quiz_obj["explanation"] = f"본문의 '{quiz_obj['evidence'][:60]}...' 문장을 근거로 {chr(65 + quiz_obj.get('answer_index', 0))}번이 정답입니다."
+            else:
+                quiz_obj["explanation"] = f"본문 내용의 핵심 논리에 따라 {chr(65 + quiz_obj.get('answer_index', 0))}번이 정답입니다."
+
+    return quiz_obj
 
 class GenerateRequest(BaseModel):
     article: str
