@@ -32,7 +32,7 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     private val generator: LocalQuizGenerator = LocalQuizGenerator.builder(application)
-        .fromHuggingFace("kez-lab/qwen2.5-0.5b-blog-quiz-android")
+        .fromHuggingFace("kez-lab/quiz-korean")
         .build()
 
     private val _inputText = MutableStateFlow(presetArticles.first().content)

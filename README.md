@@ -6,7 +6,7 @@
 [![Zero Server Cost](https://img.shields.io/badge/Server_Cost-$0_Forever-success.svg?style=for-the-badge)](https://github.com/kez-lab/ondevice-blog-quiz-generator)
 [![Privacy](https://img.shields.io/badge/Privacy-100%25_Offline_Safe-critical.svg?style=for-the-badge)](https://github.com/kez-lab/ondevice-blog-quiz-generator)
 
-[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-kez--lab%2Fqwen2.5--0.5b--blog--quiz--android-yellow?logo=huggingface)](https://huggingface.co/kez-lab/qwen2.5-0.5b-blog-quiz-android)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-kez--lab%2Fquiz--korean-yellow?logo=huggingface)](https://huggingface.co/kez-lab/quiz-korean)
 [![Platform](https://img.shields.io/badge/Platform-Android_14+-green.svg?logo=android)](https://developer.android.com)
 [![JitPack](https://jitpack.io/v/kez-lab/ondevice-blog-quiz-generator.svg)](https://jitpack.io/#kez-lab/ondevice-blog-quiz-generator)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)

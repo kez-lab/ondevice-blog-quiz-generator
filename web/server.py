@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 🚀 온디바이스 블로그 퀴즈 AI 전용 고성능 웹 서버 (FastAPI)
-- One-Shot In-Context Grounding 프롬프트 엔진 적용 (본문 100% 충실)
+- 상세 입출력 로깅 (웹 요청 실시간 모니터링)
 - Mac M4 Pro Metal MPS GPU 안전 가속
 """
 
@@ -69,7 +69,7 @@ inference_lock = asyncio.Lock()
 def get_model():
     global model, tokenizer
     if model is None:
-        print(f"📦 [Server] 베이스 모델 로드 중: {MODEL_ID} (Device: {device})...")
+        print(f"📦 [Server] 모델 로드 중: {MODEL_ID} (Device: {device})...")
         tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_ID,
@@ -107,7 +107,6 @@ def robust_parse_quizzes(raw_text: str):
             explanation = exp_m.group(1) if exp_m else ""
             ans_idx = int(ans_m.group(1)) if ans_m else 0
             opts = [o.replace('"', '').strip() for o in opt_m.group(1).split(',')] if opt_m else ["보기 1", "보기 2", "보기 3", "보기 4"]
-            # 4지선다 개수 맞추기
             while len(opts) < 4:
                 opts.append(f"보기 {len(opts)+1}")
             quizzes.append({
@@ -136,6 +135,10 @@ async def generate_quiz(req: GenerateRequest):
         try:
             m, tok = get_model()
             
+            print(f"\n==================== [새로운 웹 요청 도착] ====================")
+            print(f"📄 [입력 텍스트 ({len(req.article)}자)]:\n{req.article[:300]}...")
+            print(f"⚙️ [설정]: 문항수={req.count}, 온도={req.temperature}")
+            
             messages = [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": ONE_SHOT_USER_EXAMPLE},
@@ -162,12 +165,16 @@ async def generate_quiz(req: GenerateRequest):
             generated_ids = outputs[0][inputs.input_ids.shape[1]:]
             raw_output = tok.decode(generated_ids, skip_special_tokens=True).strip()
             
-            # GPU 캐시 즉시 비우기 (메모리 누수 방지)
+            print(f"\n🤖 [AI 원본 출력]:\n{raw_output}")
+            
+            # GPU 캐시 즉시 비우기
             if torch.backends.mps.is_available():
                 torch.mps.empty_cache()
             gc.collect()
             
             quizzes = robust_parse_quizzes(raw_output)
+            print(f"🎉 [파싱 성공]: 총 {len(quizzes)}문항")
+            print("=================================================================\n")
             
             return {
                 "success": True,
@@ -177,6 +184,7 @@ async def generate_quiz(req: GenerateRequest):
             }
             
         except Exception as e:
+            print(f"❌ [에러 발생]: {e}")
             raise HTTPException(status_code=500, detail=f"추론 실패: {str(e)}")
 
 # 정적 파일 마운트
