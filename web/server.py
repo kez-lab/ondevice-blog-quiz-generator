@@ -167,38 +167,42 @@ def robust_parse_single_quiz(raw_text: str):
             except Exception:
                 pass
 
-    # 3. 정규식 추출
+    # 3. 정규식 추출 (이스케이프된 따옴표 \" 완벽 지원)
     if not quiz_obj:
-        q_m = re.search(r'\"question\"\s*:\s*\"([^\"]+)\"', raw_text)
-        exp_m = re.search(r'\"explanation\"\s*:\s*\"([^\"]+)\"', raw_text)
-        evi_m = re.search(r'\"evidence\"\s*:\s*\"([^\"]+)\"', raw_text)
+        q_m = re.search(r'\"question\"\s*:\s*\"((?:\\.|[^\"\\])*)\"', raw_text)
+        exp_m = re.search(r'\"explanation\"\s*:\s*\"((?:\\.|[^\"\\])*)\"', raw_text)
+        evi_m = re.search(r'\"evidence\"\s*:\s*\"((?:\\.|[^\"\\])*)\"', raw_text)
         ans_m = re.search(r'\"answer_index\"\s*:\s*(\d+)', raw_text)
-        opt_m = re.search(r'\"options\"\s*:\s*\[([^\]]+)\]', raw_text)
+        opt_m = re.search(r'\"options\"\s*:\s*\[((?:\\.|[^\]])+)\]', raw_text)
 
         if q_m:
-            opts = [o.replace('"', '').strip() for o in opt_m.group(1).split(',')] if opt_m else ["선택지 A", "선택지 B", "선택지 C", "선택지 D"]
+            raw_opts = opt_m.group(1) if opt_m else ""
+            opts = [re.sub(r'^[\"\s]+|[\"\s]+$', '', o).replace('\\"', '"') for o in re.findall(r'\"((?:\\.|[^\"\\])*)\"', raw_opts)]
+            if not opts:
+                opts = ["선택지 A", "선택지 B", "선택지 C", "선택지 D"]
             while len(opts) < 4:
                 opts.append(f"선택지 {len(opts)+1}")
             quiz_obj = {
-                "question": q_m.group(1),
+                "question": q_m.group(1).replace('\\"', '"').replace('\\\\', '\\').strip(),
                 "options": opts[:4],
                 "answer_index": min(int(ans_m.group(1)) if ans_m else 0, 3),
-                "explanation": exp_m.group(1) if exp_m else "",
-                "evidence": evi_m.group(1) if evi_m else ""
+                "explanation": exp_m.group(1).replace('\\"', '"').strip() if exp_m else "",
+                "evidence": evi_m.group(1).replace('\\"', '"').strip() if evi_m else ""
             }
 
     # 4. <thought> 블록에서 Evidence, 정답, 4개 선택지 및 해설 자동 보강
     if quiz_obj:
-        thought_q = re.search(r'2\.\s*출제 질문[^\n]*\n\s*\"([^\"]+)\"', raw_text)
-        thought_evi = re.search(r'1\.\s*본문 핵심 근거[^\n]*\n\s*\"([^\"]+)\"', raw_text)
-        thought_ans = re.search(r'3\.\s*명확한 단일 정답[^\n]*\n\s*\"([^\"]+)\"', raw_text)
+        thought_q = re.search(r'2\.\s*출제 질문[^\n]*\n\s*\"((?:\\.|[^\"\\])*)\"', raw_text)
+        thought_evi = re.search(r'1\.\s*본문 핵심 근거[^\n]*\n\s*\"((?:\\.|[^\"\\])*)\"', raw_text)
+        thought_ans = re.search(r'3\.\s*명확한 단일 정답[^\n]*\n\s*\"((?:\\.|[^\"\\])*)\"', raw_text)
         thought_d1 = re.search(r'오답 1\s*:\s*([^\n]+)', raw_text)
         thought_d2 = re.search(r'오답 2\s*:\s*([^\n]+)', raw_text)
         thought_d3 = re.search(r'오답 3\s*:\s*([^\n]+)', raw_text)
         thought_idx_m = re.search(r'정답을\s*([A-D])\s*번', raw_text)
 
-        if not quiz_obj.get("question") and thought_q:
-            quiz_obj["question"] = thought_q.group(1).strip()
+        # 질문이 잘렸거나 너무 짧을 때 thought의 완성된 질문으로 복원
+        if (not quiz_obj.get("question") or len(quiz_obj.get("question", "").strip()) < 10 or quiz_obj.get("question", "").endswith("\\")) and thought_q:
+            quiz_obj["question"] = thought_q.group(1).replace('\\"', '"').strip()
 
         # 선택지가 더미("선택지 A")이거나 잘렸을 경우 thought의 정답 및 오답 3개로 완전 재구성
         has_dummy_opts = any("선택지 " in opt for opt in quiz_obj.get("options", []))
