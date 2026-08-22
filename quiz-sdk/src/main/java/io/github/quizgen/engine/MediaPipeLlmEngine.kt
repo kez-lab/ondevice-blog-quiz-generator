@@ -1,6 +1,8 @@
 package io.github.quizgen.engine
 
 import android.content.Context
+import com.google.mediapipe.tasks.core.ErrorListener
+import com.google.mediapipe.tasks.core.OutputHandler
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -24,8 +26,7 @@ class MediaPipeLlmEngine(
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(modelPath)
                 .setMaxTokens(maxTokens)
-                .setTopK(topK)
-                .setTemperature(temperature)
+                .setMaxTopK(topK)
                 .build()
             llmInference = LlmInference.createFromOptions(context, options)
         }
@@ -38,21 +39,19 @@ class MediaPipeLlmEngine(
     }
 
     override fun generateStream(prompt: String): Flow<String> = callbackFlow {
-        val engine = getOrInitEngine()
         val sessionOptions = LlmInference.LlmInferenceOptions.builder()
             .setModelPath(modelPath)
             .setMaxTokens(maxTokens)
-            .setTopK(topK)
-            .setTemperature(temperature)
-            .setResultListener { partialResult, done ->
+            .setMaxTopK(topK)
+            .setResultListener(OutputHandler.ProgressListener<String> { partialResult: String, done: Boolean ->
                 trySend(partialResult)
                 if (done) {
                     channel.close()
                 }
-            }
-            .setErrorListener { error ->
-                channel.close(IllegalStateException("MediaPipe 추론 에러: ${error.message}"))
-            }
+            })
+            .setErrorListener(ErrorListener { error: RuntimeException ->
+                channel.close(IllegalStateException("MediaPipe 추론 에러: ${error.message}", error))
+            })
             .build()
 
         val streamingEngine = LlmInference.createFromOptions(context, sessionOptions)
